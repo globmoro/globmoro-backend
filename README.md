@@ -36,7 +36,7 @@ v1 stores inquiries in memory and appends to `data/inquiries.jsonl` (best-effort
 ## Frontend usage
 
 ```ts
-await fetch(`${import.meta.env.VITE_API_URL}/api/inquiries`, {
+await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/inquiries`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -50,7 +50,7 @@ await fetch(`${import.meta.env.VITE_API_URL}/api/inquiries`, {
 });
 ```
 
-Set the frontend env to your deployed API origin (e.g. `https://api.globmoro.com`).
+Set `NEXT_PUBLIC_API_URL` to the API origin (e.g. `https://api.globmoro.com`, no trailing slash).
 
 ## Local development
 
@@ -64,21 +64,34 @@ npm run build && npm start
 
 ## Environment
 
-See `.env.example`. Important vars:
+See `.env.example`. No secrets required for v1. Never commit `.env`.
 
-- `PORT` — listen port (EasyPanel sets this)
-- `CORS_ORIGINS` — comma-separated allowed frontend origins
-- `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_MS` — light per-IP limit on inquiries
+| Variable | Required | Example |
+|----------|----------|---------|
+| `PORT` | yes (EasyPanel) | `3000` |
+| `HOST` | no (default `0.0.0.0`) | `0.0.0.0` |
+| `NODE_ENV` | yes | `production` |
+| `CORS_ORIGINS` | yes | `https://globmoro.com,https://www.globmoro.com` |
+| `RATE_LIMIT_MAX` | no | `10` |
+| `RATE_LIMIT_WINDOW_MS` | no | `60000` |
 
-No secrets are required for v1. Never commit `.env`.
+## EasyPanel checklist
 
-## EasyPanel
+- [ ] App source: `https://github.com/globmoro/globmoro-backend` (no trailing hyphen)
+- [ ] Branch: `main`
+- [ ] Build path: `.`
+- [ ] Deploy via **Dockerfile** (preferred) or Nixpacks (`npm run build` → `npm start`)
+- [ ] Domain: `api.globmoro.com` → this app
+- [ ] Env vars (production):
 
-- **GitHub repo:** `https://github.com/globmoro/globmoro-backend` (no trailing hyphen)
-- **Branch:** `main`
-- **Build path:** `.` (repo root)
-- **Start:** `npm start` (runs after `npm run build` via Dockerfile, or Nixpacks detect `build` + `start`)
-- **Port:** use the platform `PORT` env (Dockerfile exposes `3000`)
-- Set `CORS_ORIGINS` to your frontend URL(s), e.g. `https://globmoro.com,https://www.globmoro.com`
+```env
+PORT=3000
+HOST=0.0.0.0
+NODE_ENV=production
+CORS_ORIGINS=https://globmoro.com,https://www.globmoro.com
+```
 
-Dockerfile is included for container deploys. Nixpacks also works: install → `npm run build` → `npm start`.
+- [ ] Optional: `RATE_LIMIT_MAX=10` / `RATE_LIMIT_WINDOW_MS=60000`
+- [ ] Health: Dockerfile `HEALTHCHECK` hits `GET /health` (also use `/health` in EasyPanel health path if prompted)
+- [ ] **Volume (jsonl persistence):** mount a persistent volume at `/app/data` so `data/inquiries.jsonl` survives restarts. Without a volume, in-memory + file data is lost on redeploy.
+- [ ] Confirm frontend `NEXT_PUBLIC_API_URL=https://api.globmoro.com` and CORS matches FE origins
