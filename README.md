@@ -1,6 +1,8 @@
-# globmoro-backend-
+# globmoro-backend
 
 Minimal contact/inquiry API for [globmoro.com](https://globmoro.com).
+
+**Repo:** https://github.com/globmoro/globmoro-backend
 
 ## Endpoints
 
@@ -72,6 +74,7 @@ No secrets are required for v1. Never commit `.env`.
 
 ## EasyPanel
 
+- **GitHub repo:** `https://github.com/globmoro/globmoro-backend` (no trailing hyphen)
 - **Branch:** `main`
 - **Build path:** `.` (repo root)
 - **Start:** `npm start` (runs after `npm run build` via Dockerfile, or Nixpacks detect `build` + `start`)
