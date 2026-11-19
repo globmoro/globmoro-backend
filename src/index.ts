@@ -4,6 +4,7 @@ import rateLimit from "@fastify/rate-limit";
 import { randomUUID } from "node:crypto";
 import { inquirySchema, maskEmail, maskPhone } from "./validation.js";
 import { saveInquiry, inquiryCount } from "./store.js";
+import { sendInquiryEmail } from "./mail.js";
 import type { Inquiry } from "./types.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -61,6 +62,7 @@ async function main() {
         createdAt: new Date().toISOString(),
       };
 
+      // Persist first so SMTP hiccups never drop a lead.
       await saveInquiry(inquiry);
 
       request.log.info(
@@ -73,6 +75,9 @@ async function main() {
         },
         "inquiry_received"
       );
+
+      // Best-effort email; failures are logged. Client still gets 201.
+      await sendInquiryEmail(inquiry, request.log);
 
       return reply.status(201).send({
         ok: true,
